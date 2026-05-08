@@ -5,7 +5,7 @@ import re
 
 # CONFIGURE AQUI
 TOKEN = "8557708504:AAG2hnmS81MzE4Dj3wscfBIa6gc8hfJS6Yw"
-CHAT_ID = "SEU_CHAT_ID"
+CHAT_ID = "7756976956"
 # ----------------
 
 ultima_url = ""
