@@ -2,11 +2,10 @@ import subprocess
 import requests
 import time
 import re
+import threading
 
-# CONFIGURE AQUI
 TOKEN = "8557708504:AAG2hnmS81MzE4Dj3wscfBIa6gc8hfJS6Yw"
 CHAT_ID = "7756976956"
-# ----------------
 
 ultima_url = ""
 
@@ -22,6 +21,16 @@ def extrair_url(texto):
     match = re.search(r'https://[a-zA-Z0-9.-]+\.serveousercontent\.com', texto)
     return match.group(0) if match else None
 
+def manter_tunel_vivo(url):
+    """Faz um ping HTTP a cada 15 segundos para manter o túnel acordado"""
+    while True:
+        try:
+            r = requests.get(url, timeout=10)
+            print(f" Ping no túnel: {r.status_code}")
+        except:
+            print(" Ping falhou, túnel pode ter caído...")
+        time.sleep(15)
+
 def iniciar_tunel():
     global ultima_url
     processo = subprocess.Popen(
@@ -36,6 +45,8 @@ def iniciar_tunel():
         if url and url != ultima_url:
             ultima_url = url
             enviar_telegram(f"🔗 Novo túnel ativo:\n{url}")
+            # Inicia uma thread para manter o túnel vivo
+            threading.Thread(target=manter_tunel_vivo, args=(url,), daemon=True).start()
 
 if __name__ == "__main__":
     enviar_telegram("🟢 Guardião iniciado. Monitorando túneis...")
