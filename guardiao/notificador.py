@@ -4,7 +4,7 @@ import time
 import re
 
 # CONFIGURE AQUI
-TOKEN = "SEU_TOKEN_DO_BOT"
+TOKEN = "8557708504:AAG2hnmS81MzE4Dj3wscfBIa6gc8hfJS6Yw"
 CHAT_ID = "SEU_CHAT_ID"
 # ----------------
 
