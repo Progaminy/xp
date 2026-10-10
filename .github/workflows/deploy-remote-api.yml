@@ -1,0 +1,50 @@
+name: Deploy XP remote API
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/cloudflare
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      XP_ADMIN_KEY: ${{ secrets.XP_ADMIN_KEY }}
+      XP_DEVICE_KEY: ${{ secrets.XP_DEVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate deployment secrets
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || (echo "Missing secret CLOUDFLARE_API_TOKEN" && exit 1)
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || (echo "Missing secret CLOUDFLARE_ACCOUNT_ID" && exit 1)
+          test -n "$XP_ADMIN_KEY" || (echo "Missing secret XP_ADMIN_KEY" && exit 1)
+          test -n "$XP_DEVICE_KEY" || (echo "Missing secret XP_DEVICE_KEY" && exit 1)
+      - name: Install Wrangler
+        run: npm install --global wrangler@4
+      - name: Create or reuse D1 database
+        run: |
+          wrangler d1 list --json > /tmp/d1-list.json
+          DB_ID="$(jq -r '.[] | select(.name == "xp-battery-db") | (.uuid // .database_id // empty)' /tmp/d1-list.json | head -n 1)"
+          if [ -z "$DB_ID" ] || [ "$DB_ID" = "null" ]; then
+            wrangler d1 create xp-battery-db --json > /tmp/d1-create.json
+            DB_ID="$(jq -r '.. | objects | select(has("uuid")) | .uuid' /tmp/d1-create.json | head -n 1)"
+          fi
+          test -n "$DB_ID" || (echo "Could not obtain D1 database ID" && cat /tmp/d1-list.json && exit 1)
+          sed -i "s/REPLACE_WITH_D1_DATABASE_ID/$DB_ID/" wrangler.toml
+      - name: Apply database schema
+        run: wrangler d1 execute xp-battery-db --remote --file=schema.sql
+      - name: Configure API secrets
+        run: |
+          printf '%s' "$XP_ADMIN_KEY" | wrangler secret put ADMIN_KEY
+          printf '%s' "$XP_DEVICE_KEY" | wrangler secret put DEVICE_KEY
+      - name: Deploy Worker
+        run: wrangler deploy
