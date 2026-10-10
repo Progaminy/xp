@@ -50,7 +50,7 @@ class MainActivity : Activity() {
   layout.addView(text("A autorização é feita no ecrã oficial do Android.",13f))
   layout.addView(text("Ligação ao XP Admin pela Internet",19f))
   layout.addView(text("Introduz o URL HTTPS da API e a chave de dispositivo configurada no servidor.",13f))
-  apiUrl=field("URL HTTPS da API",remote.baseUrl());layout.addView(apiUrl)
+  apiUrl=field("URL HTTPS da API",remote.baseUrl().ifBlank { "https://xp-battery-api.pensadorsemfronteiras0.workers.dev" });layout.addView(apiUrl)
   deviceKey=field("Chave do dispositivo (DEVICE_KEY)",remote.deviceKey(),true);layout.addView(deviceKey)
   layout.addView(Button(this).apply {
    text="Guardar ligação e ativar sincronização"
