@@ -17,14 +17,18 @@ import android.widget.TextView
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var optimizationStatus: TextView
+    private lateinit var serverInfo: TextView
     private lateinit var sharing: Switch
     private val prefs by lazy { getPreferences(Context.MODE_PRIVATE) }
+    private val adminPrefs by lazy { getSharedPreferences("xp_admin", Context.MODE_PRIVATE) }
     private val database by lazy { BatteryDatabase(this) }
+    private var adminServer: LocalAdminServer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,30 +56,72 @@ class MainActivity : Activity() {
             text = "Ativar acesso sem restrições à bateria"
             setOnClickListener { requestUnrestrictedBattery() }
         })
-        layout.addView(text("O Android apresentará o ecrã oficial do sistema. Confirme a opção para permitir que o XP Battery funcione com menos restrições em segundo plano.", 14f))
+        layout.addView(text("O Android apresentará o ecrã oficial do sistema. O sistema pode limitar tarefas em segundo plano.", 14f))
 
         sharing = Switch(this).apply {
-            text = "Ativar recolha local periódica"
+            text = "Ativar recolha periódica local"
             setTextColor(Color.WHITE)
             setPadding(0, 20, 0, 20)
             isChecked = database.settings().first
         }
         layout.addView(sharing)
-        layout.addView(text("As leituras são guardadas apenas neste telefone. A ligação ao painel de outro telefone será ativada na próxima etapa.", 14f))
+        serverInfo = text("A iniciar servidor local…", 14f)
+        layout.addView(serverInfo)
+        layout.addView(text("Mantém esta aplicação aberta para disponibilizar o painel na rede local. Usa apenas uma rede Wi-Fi de confiança.", 13f))
         setContentView(layout)
 
         refreshBattery()
         refreshOptimizationStatus()
+        startAdminServer()
+
         sharing.setOnCheckedChangeListener { _, enabled ->
             database.updateSettings(enabled, database.settings().second)
             prefs.edit().putBoolean("sharing_enabled", enabled).apply()
-            val wm = WorkManager.getInstance(this)
-            if (enabled) {
-                val request = PeriodicWorkRequestBuilder<BatteryWorker>(15, TimeUnit.MINUTES).build()
-                wm.enqueueUniquePeriodicWork("xp_battery_sync", ExistingPeriodicWorkPolicy.UPDATE, request)
-            } else {
-                wm.cancelUniqueWork("xp_battery_sync")
-            }
+            applySchedule(enabled, database.settings().second)
+        }
+    }
+
+    private fun startAdminServer() {
+        val token = adminPrefs.getString("access_token", null) ?: UUID.randomUUID().toString().replace("-", "").also {
+            adminPrefs.edit().putString("access_token", it).apply()
+        }
+        adminServer = LocalAdminServer(
+            this,
+            database,
+            token,
+            onReadNow = { runOnUiThread { refreshBattery() } },
+            onConfigChanged = { enabled, interval -> runOnUiThread {
+                if (sharing.isChecked != enabled) {
+                    sharing.setOnCheckedChangeListener(null)
+                    sharing.isChecked = enabled
+                    sharing.setOnCheckedChangeListener { _, value ->
+                        database.updateSettings(value, database.settings().second)
+                        applySchedule(value, database.settings().second)
+                    }
+                }
+                applySchedule(enabled, interval)
+            } }
+        )
+        val started = adminServer?.start() == true
+        val urls = adminServer?.localUrls().orEmpty()
+        serverInfo.text = if (started && urls.isNotEmpty()) {
+            "Painel XP Admin (mesma rede Wi-Fi):\n" + urls.joinToString("\n") +
+                "\n\nCódigo de acesso (introduz no navegador):\n" + token
+        } else if (started) {
+            "Servidor ativo na porta 8765. Liga o telefone a uma rede Wi-Fi para ver o endereço local.\nCódigo de acesso: " + token
+        } else {
+            "Não foi possível iniciar o servidor local na porta 8765. Fecha outra aplicação que possa estar a usar essa porta."
+        }
+    }
+
+    private fun applySchedule(enabled: Boolean, intervalMinutes: Int) {
+        val wm = WorkManager.getInstance(this)
+        if (enabled) {
+            val minutes = intervalMinutes.coerceIn(15, 1440).toLong()
+            val request = PeriodicWorkRequestBuilder<BatteryWorker>(minutes, TimeUnit.MINUTES).build()
+            wm.enqueueUniquePeriodicWork("xp_battery_sync", ExistingPeriodicWorkPolicy.UPDATE, request)
+        } else {
+            wm.cancelUniqueWork("xp_battery_sync")
         }
     }
 
@@ -88,8 +134,9 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        adminServer?.stop()
         database.close()
+        super.onDestroy()
     }
 
     private fun requestUnrestrictedBattery() {
