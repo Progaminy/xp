@@ -5,16 +5,54 @@
 <title>XP Admin — Bateria</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa;--green:#34d399}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:760px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}p{color:var(--muted);margin:6px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem}label{display:block;color:var(--muted);margin:14px 0 7px}select,button{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7}@media(min-width:600px){.card{margin:0 0 14px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:760px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.15rem;margin:0}p{color:var(--muted);margin:6px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem;white-space:nowrap}.first-access{display:inline-block;margin-top:10px;border:1px solid #36577b;border-radius:999px;padding:5px 10px;color:#bfdbfe;font-size:.82rem}.section-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:0;border:0;background:transparent;color:var(--text);text-align:left;cursor:pointer}.section-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:5px;border-radius:5px}.chevron{font-size:1.3rem;transition:transform .18s ease;color:var(--accent)}details[open] .chevron{transform:rotate(180deg)}.section-content{padding-top:16px}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}label{display:block;color:var(--muted);margin:14px 0 7px}select,button.action{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button.action{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7;margin-top:14px}.intro{line-height:1.5}@media(min-width:600px){.card{margin:0 0 14px}}
 </style>
 </head>
 <body><main>
-<header><h1>XP Admin</h1><p>Gestão autorizada do dispositivo</p></header>
-<section class="card"><div class="row"><div><strong>Estado do dispositivo</strong><p id="deviceState">Sem ligação ao servidor</p></div><span class="pill">Bateria</span></div><p class="big" id="percent">—%</p><div class="bar"><div class="fill" id="fill"></div></div><p id="charging">Carregamento: —</p><small id="updated">Última atualização: ainda não recebida</small></section>
-<section class="card"><h2>Recolha de bateria</h2><p>Configuração visual inicial. A ligação ao servidor ainda não está configurada.</p>
-<label for="enabled">Recolha automática</label><select id="enabled"><option value="off">OFF — não enviar</option><option value="on">ON — enviar estado da bateria</option></select>
-<label for="interval">Intervalo de envio</label><select id="interval"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">24 horas</option></select>
-<button id="save" disabled>Guardar configurações</button><button class="secondary" id="now" disabled>Solicitar leitura agora</button>
-<p class="notice" id="message">Protótipo visual: ainda não está ligado a um servidor nem controla um telefone.</p></section>
-<section class="card"><h2>Privacidade</h2><p>Esta versão limita-se à bateria. O aplicativo deverá pedir consentimento no próprio aparelho. Não recolhe localização, mensagens, contactos ou outros dados.</p></section>
-</main><script>document.getElementById('enabled').addEventListener('change',()=>{document.getElementById('message').textContent='Opção selecionada localmente. A ligação ao servidor ainda não está configurada.'});document.getElementById('interval').addEventListener('change',()=>{document.getElementById('message').textContent='Intervalo selecionado localmente. A ligação ao servidor ainda não está configurada.'});</script></body></html>
+<header><h1>XP Admin</h1><p>Gestão autorizada do dispositivo</p><span class="first-access">Primeiro acesso · Configuração inicial</span></header>
+
+<section class="card">
+  <details id="batteryDetails" open>
+    <summary class="section-toggle">
+      <span><strong>Bateria do dispositivo</strong><p id="deviceState">Sem ligação ao servidor</p></span>
+      <span class="row"><span class="pill">Bateria</span><span class="chevron" aria-hidden="true">⌄</span></span>
+    </summary>
+    <div class="section-content">
+      <p class="big" id="percent">—%</p>
+      <div class="bar" role="progressbar" aria-label="Nível da bateria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
+      <p id="charging">Carregamento: —</p>
+      <small id="updated">Última atualização: ainda não recebida</small>
+    </div>
+  </details>
+</section>
+
+<section class="card">
+  <details id="collectionDetails" open>
+    <summary class="section-toggle"><span><strong>Recolha de bateria</strong><p>Definir como e quando consultar a bateria</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+    <div class="section-content">
+      <p>Esta é a configuração inicial do painel. As alterações ainda não são enviadas para um telefone porque o servidor não está ligado.</p>
+      <label for="enabled">Recolha automática</label><select id="enabled"><option value="off">OFF — não enviar</option><option value="on">ON — enviar estado da bateria</option></select>
+      <label for="interval">Intervalo de envio</label><select id="interval"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">24 horas</option></select>
+      <button class="action" id="save" disabled>Guardar configurações</button>
+      <button class="action secondary" id="now" disabled>Solicitar leitura agora</button>
+      <p class="notice" id="message">Modo de primeiro acesso: protótipo visual. Ainda não controla o telefone nem recebe dados reais.</p>
+    </div>
+  </details>
+</section>
+
+<section class="card">
+  <details id="privacyDetails">
+    <summary class="section-toggle"><span><strong>Privacidade</strong><p>O que esta versão consulta</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+    <div class="section-content"><p>O objetivo é trabalhar apenas com o estado da bateria, mediante autorização no próprio aparelho. Não recolhe localização, mensagens, contactos ou outros dados.</p></div>
+  </details>
+</section>
+</main>
+<script>
+const message = document.getElementById('message');
+document.getElementById('enabled').addEventListener('change',()=>{message.textContent='Opção selecionada apenas neste navegador. O servidor ainda não está configurado.'});
+document.getElementById('interval').addEventListener('change',()=>{message.textContent='Intervalo selecionado apenas neste navegador. O servidor ainda não está configurado.'});
+document.querySelectorAll('details').forEach(details=>details.addEventListener('toggle',()=>{
+  const summary=details.querySelector('summary');
+  if(summary) summary.setAttribute('aria-expanded',String(details.open));
+}));
+</script></body></html>
