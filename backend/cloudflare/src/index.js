@@ -7,6 +7,13 @@ export default { async fetch(req,env) {
  if(url.pathname==="/health")return json({ok:true,service:"XP Battery API"});
  if(url.pathname.startsWith("/device/")) {
   if(!env.DEVICE_KEY||req.headers.get("x-device-key")!==env.DEVICE_KEY)return unauthorized();
+  if(url.pathname==="/device/poll"&&req.method==="POST") {
+   let b;try{b=await req.json()}catch{return json({error:"JSON inválido"},400)}
+   if(!b.deviceId)return json({error:"deviceId obrigatório"},400);
+   const d=await env.DB.prepare("SELECT collection_enabled,interval_minutes,read_now_requested FROM devices WHERE id=?").bind(String(b.deviceId)).first();
+   if(!d)return json({collectionEnabled:false,intervalMinutes:15,readNowRequested:false,registered:false});
+   return json({collectionEnabled:!!d.collection_enabled,intervalMinutes:d.interval_minutes,readNowRequested:!!d.read_now_requested,registered:true});
+  }
   if(url.pathname==="/device/snapshot"&&req.method==="POST") {
    let b;try{b=await req.json()}catch{return json({error:"JSON inválido"},400)}
    if(!b.deviceId||!Number.isInteger(b.batteryPercent)||b.batteryPercent<0||b.batteryPercent>100)return json({error:"Dados inválidos"},400);
