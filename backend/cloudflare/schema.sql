@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, device_name TEXT NOT NULL, manufacturer TEXT, model TEXT, android_version TEXT, battery_percent INTEGER, charging INTEGER, storage_total_bytes INTEGER, storage_used_bytes INTEGER, storage_free_bytes INTEGER, updated_at INTEGER NOT NULL, collection_enabled INTEGER NOT NULL DEFAULT 0, interval_minutes INTEGER NOT NULL DEFAULT 15, read_now_requested INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS battery_history (id INTEGER PRIMARY KEY AUTOINCREMENT, device_id TEXT NOT NULL, percent INTEGER NOT NULL, charging INTEGER NOT NULL, recorded_at INTEGER NOT NULL, FOREIGN KEY(device_id) REFERENCES devices(id));
+CREATE INDEX IF NOT EXISTS idx_battery_history_device_time ON battery_history(device_id, recorded_at DESC);
