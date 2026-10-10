@@ -39,13 +39,20 @@ jobs:
 
       - name: Create or reuse D1 database
         run: |
-          wrangler d1 list --json > /tmp/d1-list.json
-          DB_ID="$(jq -r '.[] | select(.name == "xp-battery-db") | (.uuid // .database_id // empty)' /tmp/d1-list.json | head -n 1)"
+          API_URL="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database"
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$API_URL" > /tmp/d1-list.json
+          DB_ID="$(jq -r '.result[] | select(.name == "xp-battery-db") | .uuid' /tmp/d1-list.json | head -n 1)"
           if [ -z "$DB_ID" ] || [ "$DB_ID" = "null" ]; then
-            wrangler d1 create xp-battery-db --json > /tmp/d1-create.json
-            DB_ID="$(jq -r '.. | objects | select(has("uuid")) | .uuid' /tmp/d1-create.json | head -n 1)"
+            curl --fail-with-body --silent --show-error \
+              -X POST "$API_URL" \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"name":"xp-battery-db"}' > /tmp/d1-create.json
+            DB_ID="$(jq -r '.result.uuid // empty' /tmp/d1-create.json)"
           fi
-          test -n "$DB_ID" || (echo "Could not obtain D1 database ID" && cat /tmp/d1-list.json && exit 1)
+          test -n "$DB_ID" || (echo "Could not obtain D1 database ID"; cat /tmp/d1-list.json; exit 1)
           sed -i "s/REPLACE_WITH_D1_DATABASE_ID/$DB_ID/" wrangler.toml
 
       - name: Apply database schema
