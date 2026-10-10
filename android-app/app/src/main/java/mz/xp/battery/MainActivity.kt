@@ -4,8 +4,13 @@ import android.app.Activity
 import android.os.BatteryManager
 import android.os.Bundle
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import android.graphics.Color
 import android.view.Gravity
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
@@ -16,7 +21,9 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : Activity() {
     private lateinit var status: TextView
+    private lateinit var optimizationStatus: TextView
     private lateinit var sharing: Switch
+    private val prefs by lazy { getPreferences(Context.MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,21 +41,32 @@ class MainActivity : Activity() {
             setPadding(0, 12, 0, 12)
         }
         layout.addView(text("XP Battery", 28f))
-        layout.addView(text("Estado atual do aparelho", 17f))
+        layout.addView(text("Estado da bateria", 17f))
         status = text("", 22f)
         layout.addView(status)
+
+        optimizationStatus = text("", 15f)
+        layout.addView(optimizationStatus)
+        layout.addView(Button(this).apply {
+            text = "Ativar acesso sem restrições à bateria"
+            setOnClickListener { requestUnrestrictedBattery() }
+        })
+        layout.addView(text("O Android apresentará o ecrã oficial do sistema. Confirme a opção para permitir que o XP Battery funcione com menos restrições em segundo plano.", 14f))
+
         sharing = Switch(this).apply {
-            text = "Permitir partilha periódica da bateria"
+            text = "Ativar tarefa periódica local"
             setTextColor(Color.WHITE)
             setPadding(0, 20, 0, 20)
-            isChecked = getPreferences(Context.MODE_PRIVATE).getBoolean("sharing_enabled", false)
+            isChecked = prefs.getBoolean("sharing_enabled", false)
         }
         layout.addView(sharing)
-        layout.addView(text("A partilha remota será ativada depois de configurar o servidor seguro. Este controlo guarda apenas a preferência local nesta versão.", 14f))
+        layout.addView(text("A ligação ao painel web/servidor ainda não está configurada nesta versão.", 14f))
         setContentView(layout)
+
         refreshBattery()
+        refreshOptimizationStatus()
         sharing.setOnCheckedChangeListener { _, enabled ->
-            getPreferences(Context.MODE_PRIVATE).edit().putBoolean("sharing_enabled", enabled).apply()
+            prefs.edit().putBoolean("sharing_enabled", enabled).apply()
             val wm = WorkManager.getInstance(this)
             if (enabled) {
                 val request = PeriodicWorkRequestBuilder<BatteryWorker>(15, TimeUnit.MINUTES).build()
@@ -56,6 +74,40 @@ class MainActivity : Activity() {
             } else {
                 wm.cancelUniqueWork("xp_battery_sync")
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::status.isInitialized) {
+            refreshBattery()
+            refreshOptimizationStatus()
+        }
+    }
+
+    private fun requestUnrestrictedBattery() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        if (powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            refreshOptimizationStatus()
+            return
+        }
+        try {
+            startActivity(
+                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+            )
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        }
+    }
+
+    private fun refreshOptimizationStatus() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        optimizationStatus.text = if (powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            "Acesso sem restrições à bateria: ATIVADO"
+        } else {
+            "Acesso sem restrições à bateria: ainda não autorizado"
         }
     }
 
