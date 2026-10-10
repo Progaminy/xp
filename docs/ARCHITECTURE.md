@@ -1,30 +1,25 @@
-# XP Battery v1 — architecture and setup
+# XP Battery — arquitetura local
 
-## Data flow
-1. The owner installs the Android app, opens it, and explicitly approves battery sharing.
-2. The app registers the device with Firebase Authentication and Firestore.
-3. The admin signs in to the website with an administrator account.
-4. Admin settings per device: battery sharing ON/OFF and reporting interval.
-5. ON schedules WorkManager periodic sync (Android minimum is 15 minutes). OFF cancels scheduled sync.
-6. “Read now” creates a one-time command. FCM can notify the app to run a one-time battery read; delivery is not guaranteed if the OS force-stops the app or the device is offline.
-7. The app uploads only battery level, charging state, battery health/status if available, and timestamp.
+## Objetivo
+Guardar o estado da bateria exclusivamente no telefone Android que executa o XP Battery. Não é necessária uma conta Firebase nem uma base de dados na nuvem.
 
-## Suggested Firestore shape
-- `devices/{deviceId}`: ownerUid, displayName, sharingAllowed, lastSeenAt, batteryPercent, isCharging, batteryStatus, batteryUpdatedAt.
-- `devices/{deviceId}/private/settings`: reportingEnabled, intervalMinutes, requestNowAt.
-- Admin accounts are granted through Firebase Authentication and an admin allow-list/custom claim. Do not trust a role sent by the browser.
+## Arquitetura
+1. A aplicação Android lê a percentagem e o estado de carregamento.
+2. SQLite local guarda leituras, data/hora e as opções de recolha.
+3. O APK disponibiliza o painel XP Admin e uma pequena API HTTP na rede Wi-Fi local, na porta 8765.
+4. Um navegador noutro telefone, na mesma rede, abre o endereço local mostrado no APK.
+5. As rotas da API exigem o código de acesso gerado no primeiro arranque. A página web é servida pela mesma origem, evitando dependências de serviços externos.
 
-## Required configuration before live use
-- Create a Firebase project.
-- Enable Email/Password Authentication for admin accounts.
-- Enable Firestore and Firebase Cloud Messaging.
-- Add the Android app package ID and download `google-services.json` into `android-app/app/` locally; do not commit it if the project policy requires it.
-- Configure Firebase web app settings in the website environment/config file.
-- Apply restrictive Firestore security rules so only an authorized admin can change settings and only the paired device can write its own status.
-- For production, use Firebase App Check and admin role claims.
+## Limitações
+- A primeira implementação do servidor só fica disponível enquanto o processo da aplicação está ativo; fechar a aplicação ou o Android terminar o processo interrompe o acesso. Um serviço em primeiro plano poderá ser acrescentado depois, com notificação persistente.
+- O navegador e o telefone Android precisam de estar na mesma rede local e a rede tem de permitir comunicação entre dispositivos.
+- HTTP numa rede local não cifra o tráfego. Usar apenas Wi-Fi de confiança; não encaminhar a porta para a Internet nem usar em redes públicas.
+- O WorkManager aceita períodos a partir de 15 minutos, mas o Android pode atrasar tarefas devido às políticas de bateria.
+- “Solicitar leitura agora” atualiza a leitura quando o processo Android está ativo; a entrega instantânea não é garantida se o processo tiver sido terminado.
+- A base de dados SQLite é privada da aplicação e não é copiada para um serviço externo.
 
-## Android background behavior
-WorkManager periodic jobs have a 15-minute minimum interval and may run later under Doze/battery restrictions. The “Read now” action uses FCM as a wake-up signal, but Android does not guarantee instant delivery in every condition. The device owner can disable sharing at any time.
+## Segurança e âmbito
+O código de acesso protege as rotas da API; deve ser partilhado apenas com administradores autorizados. Esta versão recolhe apenas percentagem, estado de carregamento e data/hora. Não recolhe localização, mensagens, contactos ou outros dados pessoais.
 
-## Security boundaries
-This first version intentionally exposes battery information only. It does not provide remote shell execution or remote access to unrelated phone data.
+## Compilação
+Na pasta `android-app`, executar `gradle assembleDebug`. O workflow GitHub Actions `Build XP Battery APK` pode gerar um APK de teste como artefacto. O APK deve ser testado num telefone real antes de ser considerado pronto para utilização.
