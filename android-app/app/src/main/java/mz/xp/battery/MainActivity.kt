@@ -24,6 +24,7 @@ class MainActivity : Activity() {
     private lateinit var optimizationStatus: TextView
     private lateinit var sharing: Switch
     private val prefs by lazy { getPreferences(Context.MODE_PRIVATE) }
+    private val database by lazy { BatteryDatabase(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,18 +55,19 @@ class MainActivity : Activity() {
         layout.addView(text("O Android apresentará o ecrã oficial do sistema. Confirme a opção para permitir que o XP Battery funcione com menos restrições em segundo plano.", 14f))
 
         sharing = Switch(this).apply {
-            text = "Ativar tarefa periódica local"
+            text = "Ativar recolha local periódica"
             setTextColor(Color.WHITE)
             setPadding(0, 20, 0, 20)
-            isChecked = prefs.getBoolean("sharing_enabled", false)
+            isChecked = database.settings().first
         }
         layout.addView(sharing)
-        layout.addView(text("A ligação ao painel web/servidor ainda não está configurada nesta versão.", 14f))
+        layout.addView(text("As leituras são guardadas apenas neste telefone. A ligação ao painel de outro telefone será ativada na próxima etapa.", 14f))
         setContentView(layout)
 
         refreshBattery()
         refreshOptimizationStatus()
         sharing.setOnCheckedChangeListener { _, enabled ->
+            database.updateSettings(enabled, database.settings().second)
             prefs.edit().putBoolean("sharing_enabled", enabled).apply()
             val wm = WorkManager.getInstance(this)
             if (enabled) {
@@ -85,6 +87,11 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        database.close()
+    }
+
     private fun requestUnrestrictedBattery() {
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         if (powerManager.isIgnoringBatteryOptimizations(packageName)) {
@@ -92,11 +99,9 @@ class MainActivity : Activity() {
             return
         }
         try {
-            startActivity(
-                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:$packageName")
-                }
-            )
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            })
         } catch (_: Exception) {
             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
         }
@@ -115,6 +120,11 @@ class MainActivity : Activity() {
         val manager = getSystemService(BATTERY_SERVICE) as BatteryManager
         val level = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         val charging = manager.isCharging
-        status.text = if (level in 0..100) "$level%\n" + if (charging) "A carregar" else "Não está a carregar" else "Dados indisponíveis"
+        if (level in 0..100) {
+            database.saveSnapshot(level, charging)
+            status.text = "$level%\n" + if (charging) "A carregar" else "Não está a carregar"
+        } else {
+            status.text = "Dados indisponíveis"
+        }
     }
 }
