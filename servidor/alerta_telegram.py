@@ -1,98 +1,64 @@
+import os
 import subprocess
 import json
 import time
 import requests
 
-# CONFIGURE AQUI
-TOKEN = "8557708504:AAG2hnmS81MzE4Dj3wscfBIa6gc8hfJS6Yw"
-CHAT_ID = "7756976956"
-INTERVALO = 5  # segundos para teste (depois mude para 300)
-# ------------------
+TOKEN = os.environ.get("XP_TELEGRAM_BOT_TOKEN", "")
+CHAT_ID = os.environ.get("XP_TELEGRAM_CHAT_ID", "")
+INTERVALO = 300
 
 ultima_mensagem_id = None
 
+def verificar_config():
+    if not TOKEN or not CHAT_ID:
+        raise SystemExit("Configura XP_TELEGRAM_BOT_TOKEN e XP_TELEGRAM_CHAT_ID.")
+
 def apagar_mensagem_anterior():
-    """Apaga a ultima mensagem de bateria enviada no Telegram"""
     global ultima_mensagem_id
-    if ultima_mensagem_id:
-        try:
-            url = f"https://api.telegram.org/bot{TOKEN}/deleteMessage"
-            requests.get(url, params={
-                "chat_id": CHAT_ID,
-                "message_id": ultima_mensagem_id
-            }, timeout=10)
-            print("Mensagem anterior apagada.")
-        except Exception as e:
-            print(f"Erro ao apagar mensagem: {e}")
+    if not ultima_mensagem_id:
+        return
+    try:
+        url = f"https://api.telegram.org/bot{TOKEN}/deleteMessage"
+        requests.post(url, data={"chat_id": CHAT_ID, "message_id": ultima_mensagem_id}, timeout=10)
+    except Exception as e:
+        print(f"Erro ao apagar mensagem anterior: {e}")
 
 def enviar_telegram(mensagem):
-    """Envia mensagem para o Telegram e guarda o ID"""
     global ultima_mensagem_id
     try:
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-        resposta = requests.get(url, params={
-            "chat_id": CHAT_ID,
-            "text": mensagem
-        }, timeout=10)
-
+        resposta = requests.post(url, data={"chat_id": CHAT_ID, "text": mensagem}, timeout=10)
         dados = resposta.json()
-        if dados.get('ok'):
-            ultima_mensagem_id = dados['result']['message_id']
-            print(f"Mensagem enviada ao Telegram (ID: {ultima_mensagem_id})")
+        if dados.get("ok"):
+            ultima_mensagem_id = dados["result"]["message_id"]
         else:
-            print(f"Erro na API: {dados}")
+            print("Telegram recusou a mensagem.")
     except Exception as e:
         print(f"Erro ao enviar Telegram: {e}")
 
 def verificar_bateria():
-    """Retorna dados da bateria"""
-    resultado = subprocess.run(
-        ['termux-battery-status'],
-        capture_output=True,
-        text=True
-    )
+    resultado = subprocess.run(["termux-battery-status"], capture_output=True, text=True, timeout=10, check=True)
     return json.loads(resultado.stdout)
 
-if __name__ == '__main__':
-    print("Monitor de bateria via Telegram iniciado...")
-    print(f"Atualizando a cada {INTERVALO} segundos")
-    print(f"Modo: Apaga anterior antes de enviar novo")
-    print("-" * 40)
-
+if __name__ == "__main__":
+    verificar_config()
+    print("Monitor de bateria via Telegram iniciado.")
     while True:
         try:
             dados = verificar_bateria()
-            porcentagem = dados['percentage']
-            status = dados['status']
-            temperatura = dados['temperature']
-            saude = dados.get('health', 'N/D')
-
-            # Emojis para status
-            if status == 'CHARGING':
-                emoji = '⚡'
-            elif status == 'DISCHARGING':
-                emoji = '🔋'
-            else:
-                emoji = '🔌'
-
+            status = dados.get("status", "N/D")
+            emoji = "⚡" if status == "CHARGING" else "🔋" if status == "DISCHARGING" else "🔌"
             mensagem = (
-                f"{emoji} *Relatorio de Bateria*\n"
+                f"{emoji} Relatório de Bateria\n"
                 f"────────────────────\n"
-                f"📊 *Nivel:* {porcentagem}%\n"
-                f"📈 *Status:* {status}\n"
-                f"🌡 *Temperatura:* {temperatura}°C\n"
-                f"💚 *Saude:* {saude}"
+                f"Nivel: {dados.get('percentage', 'N/D')}%\n"
+                f"Status: {status}\n"
+                f"Temperatura: {dados.get('temperature', 'N/D')}°C\n"
+                f"Saude: {dados.get('health', 'N/D')}"
             )
-
-            print(mensagem.replace('*', '').replace('\n', ' | '))
-
-            # 1. Apaga a mensagem anterior
             apagar_mensagem_anterior()
-
-            # 2. Envia a nova mensagem
             enviar_telegram(mensagem)
-
         except Exception as e:
-            print(f"Erro: {e}")
-
+            print(f"Erro no monitor de bateria: {e}")
         time.sleep(INTERVALO)
