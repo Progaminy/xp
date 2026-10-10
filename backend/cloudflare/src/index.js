@@ -20,6 +20,7 @@ export default { async fetch(req,env) {
    const now=Date.now();
    await env.DB.prepare("INSERT INTO devices(id,device_name,manufacturer,model,android_version,battery_percent,charging,storage_total_bytes,storage_used_bytes,storage_free_bytes,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET device_name=excluded.device_name,manufacturer=excluded.manufacturer,model=excluded.model,android_version=excluded.android_version,battery_percent=excluded.battery_percent,charging=excluded.charging,storage_total_bytes=excluded.storage_total_bytes,storage_used_bytes=excluded.storage_used_bytes,storage_free_bytes=excluded.storage_free_bytes,updated_at=excluded.updated_at").bind(String(b.deviceId),String(b.deviceName||"Android"),String(b.manufacturer||""),String(b.model||""),String(b.androidVersion||""),b.batteryPercent,b.charging?1:0,Number(b.storageTotalBytes||0),Number(b.storageUsedBytes||0),Number(b.storageFreeBytes||0),now).run();
    await env.DB.prepare("INSERT INTO battery_history(device_id,percent,charging,recorded_at) VALUES(?,?,?,?)").bind(String(b.deviceId),b.batteryPercent,b.charging?1:0,now).run();
+   await env.DB.prepare("UPDATE devices SET read_now_requested=0 WHERE id=?").bind(String(b.deviceId)).run();
    const d=await env.DB.prepare("SELECT collection_enabled,interval_minutes,read_now_requested FROM devices WHERE id=?").bind(String(b.deviceId)).first();
    return json({ok:true,collectionEnabled:!!d.collection_enabled,intervalMinutes:d.interval_minutes,readNowRequested:!!d.read_now_requested});
   }
