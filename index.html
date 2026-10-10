@@ -4,55 +4,32 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>XP Admin — Bateria</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa;--green:#34d399}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:760px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.15rem;margin:0}p{color:var(--muted);margin:6px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem;white-space:nowrap}.first-access{display:inline-block;margin-top:10px;border:1px solid #36577b;border-radius:999px;padding:5px 10px;color:#bfdbfe;font-size:.82rem}.section-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:0;border:0;background:transparent;color:var(--text);text-align:left;cursor:pointer}.section-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:5px;border-radius:5px}.chevron{font-size:1.3rem;transition:transform .18s ease;color:var(--accent)}details[open] .chevron{transform:rotate(180deg)}.section-content{padding-top:16px}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}label{display:block;color:var(--muted);margin:14px 0 7px}select,button.action{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button.action{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7;margin-top:14px}.intro{line-height:1.5}@media(min-width:600px){.card{margin:0 0 14px}}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa;--green:#34d399;--red:#fca5a5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:800px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.15rem;margin:0 0 10px}p{color:var(--muted);margin:6px 0;line-height:1.45}.card,.device{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.row>*{flex:1}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem;white-space:nowrap}.status{font-size:.9rem}.ok{color:var(--green)}.error{color:var(--red)}label{display:block;color:var(--muted);margin:14px 0 7px}input,select,button{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7;margin-top:14px}.device h3{margin:0 0 8px}.hidden{display:none}details summary{cursor:pointer;font-weight:650}details .inside{padding-top:12px}
 </style>
 </head>
 <body><main>
-<header><h1>XP Admin</h1><p>Gestão autorizada do dispositivo</p><span class="first-access">Primeiro acesso · Configuração inicial</span></header>
-
+<header><h1>XP Admin</h1><p>Gestão autorizada da recolha de bateria dos teus dispositivos.</p><p class="status">Painel conectado à API Cloudflare · configuração protegida nesta sessão</p></header>
 <section class="card">
-  <details id="batteryDetails" open>
-    <summary class="section-toggle">
-      <span><strong>Bateria do dispositivo</strong><p id="deviceState">Sem ligação ao servidor</p></span>
-      <span class="row"><span class="pill">Bateria</span><span class="chevron" aria-hidden="true">⌄</span></span>
-    </summary>
-    <div class="section-content">
-      <p class="big" id="percent">—%</p>
-      <div class="bar" role="progressbar" aria-label="Nível da bateria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
-      <p id="charging">Carregamento: —</p>
-      <small id="updated">Última atualização: ainda não recebida</small>
-    </div>
-  </details>
+<h2>Ligação segura</h2><p>Introduz o endereço HTTPS da API e a chave de administrador. A chave fica apenas nesta sessão do navegador; não a partilhes.</p>
+<label for="api">URL HTTPS da API</label><input id="api" type="url" value="https://xp-battery-api.pensadorsemfronteiras0.workers.dev" autocomplete="url">
+<label for="key">Chave de administrador (XP_ADMIN_KEY)</label><input id="key" type="password" autocomplete="current-password" placeholder="Introduz a tua chave de administrador">
+<div class="grid"><button id="connect">Ligar e carregar dispositivos</button><button id="refresh" class="secondary">Atualizar dispositivos</button></div>
+<p id="message" class="notice" role="status">Ainda não ligado. Introduz a chave e toca em “Ligar e carregar dispositivos”.</p>
 </section>
-
-<section class="card">
-  <details id="collectionDetails" open>
-    <summary class="section-toggle"><span><strong>Recolha de bateria</strong><p>Definir como e quando consultar a bateria</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-    <div class="section-content">
-      <p>Esta é a configuração inicial do painel. As alterações ainda não são enviadas para um telefone porque o servidor não está ligado.</p>
-      <label for="enabled">Recolha automática</label><select id="enabled"><option value="off">OFF — não enviar</option><option value="on">ON — enviar estado da bateria</option></select>
-      <label for="interval">Intervalo de envio</label><select id="interval"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">24 horas</option></select>
-      <button class="action" id="save" disabled>Guardar configurações</button>
-      <button class="action secondary" id="now" disabled>Solicitar leitura agora</button>
-      <p class="notice" id="message">Modo de primeiro acesso: protótipo visual. Ainda não controla o telefone nem recebe dados reais.</p>
-    </div>
-  </details>
-</section>
-
-<section class="card">
-  <details id="privacyDetails">
-    <summary class="section-toggle"><span><strong>Privacidade</strong><p>O que esta versão consulta</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-    <div class="section-content"><p>O objetivo é trabalhar apenas com o estado da bateria, mediante autorização no próprio aparelho. Não recolhe localização, mensagens, contactos ou outros dados.</p></div>
-  </details>
-</section>
-</main>
+<section class="card"><div class="row"><h2>Dispositivos</h2><span id="count" class="pill">0 dispositivos</span></div><div id="devices"><p>Nenhum dispositivo carregado ainda. Depois de configurares o APK e ele enviar a primeira leitura, aparecerá aqui.</p></div></section>
+<section class="card"><details><summary>Privacidade</summary><div class="inside"><p>Esta versão recolhe apenas informações do dispositivo necessárias à função: nome/modelo, fabricante, versão Android, percentagem e estado de carregamento da bateria e utilização do armazenamento. Não recolhe localização, mensagens, contactos, fotografias ou vídeos.</p><p>Usa a recolha apenas em dispositivos teus ou com autorização explícita do respetivo utilizador.</p></div></details></section>
 <script>
-const message = document.getElementById('message');
-document.getElementById('enabled').addEventListener('change',()=>{message.textContent='Opção selecionada apenas neste navegador. O servidor ainda não está configurado.'});
-document.getElementById('interval').addEventListener('change',()=>{message.textContent='Intervalo selecionado apenas neste navegador. O servidor ainda não está configurado.'});
-document.querySelectorAll('details').forEach(details=>details.addEventListener('toggle',()=>{
-  const summary=details.querySelector('summary');
-  if(summary) summary.setAttribute('aria-expanded',String(details.open));
-}));
-</script></body></html>
+const $=id=>document.getElementById(id);let api='',key='',devices=[];
+function endpoint(path){return api.replace(/\/$/,'')+path}
+async function request(path,options={}){const r=await fetch(endpoint(path),{...options,headers:{'content-type':'application/json','authorization':'Bearer '+key,...(options.headers||{})}});const data=await r.json().catch(()=>({error:'Resposta inválida do servidor'}));if(!r.ok)throw Error(data.error||('Erro HTTP '+r.status));return data}
+function esc(v){return String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(n){n=Number(n||0);if(!n)return '—';const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+u[i]}
+function say(text,kind=''){ $('message').textContent=text;$('message').className='notice '+kind }
+function render(){ $('count').textContent=devices.length+' dispositivo'+(devices.length===1?'':'s');if(!devices.length){$('devices').innerHTML='<p>Nenhum dispositivo registado. Instala/configura o APK com a chave de dispositivo e aguarda a primeira leitura.</p>';return}
+$('devices').innerHTML=devices.map(d=>{const pct=Number(d.battery_percent);const valid=Number.isFinite(pct)&&d.battery_percent!==null&&d.battery_percent!=='';const when=Number(d.updated_at);const online=valid&&Date.now()-when<10*60*1000;return '<article class="device"><div class="row"><h3>'+esc(d.device_name||d.model||d.id)+'</h3><span class="pill '+(online?'ok':'')+'">'+(online?'Dados recentes':'Última leitura recebida')+'</span></div><p>'+esc(d.manufacturer)+' '+esc(d.model)+' · Android '+esc(d.android_version)+'</p><p class="big">'+(valid?esc(pct)+'%':'—%')+'</p><div class="bar"><div class="fill" style="width:'+(valid?Math.max(0,Math.min(100,pct)):0)+'%"></div></div><p>Carregamento: '+(d.charging?'A carregar':'Não está a carregar')+'</p><p>Armazenamento: '+esc(fmt(d.storage_used_bytes))+' usados / '+esc(fmt(d.storage_total_bytes))+' total</p><small>Última atualização: '+(when?esc(new Date(when).toLocaleString()):'ainda não recebida')+' · ID: '+esc(d.id)+'</small><div class="grid"><label>Recolha automática<select id="enabled-'+esc(d.id)+'"><option value="1" '+(d.collection_enabled?'selected':'')+'>ON — enviar</option><option value="0" '+(!d.collection_enabled?'selected':'')+'>OFF — não enviar</option></select></label><label>Intervalo de envio<select id="interval-'+esc(d.id)+'">'+[15,30,60,180,360,720,1440].map(n=>'<option value="'+n+'" '+(Number(d.interval_minutes)===n?'selected':'')+'>'+ (n<60?n+' minutos':n===60?'1 hora':n/60+' horas')+'</option>').join('')+'</select></label></div><button onclick="saveDevice('+JSON.stringify(String(d.id))+',false)">Guardar configurações</button><button class="secondary" onclick="saveDevice('+JSON.stringify(String(d.id))+',true)">Solicitar leitura agora</button></article>'}).join('')}
+async function load(){api=$('api').value.trim();key=$('key').value;if(!/^https:\/\//i.test(api))throw Error('O endereço da API deve começar por https://');if(!key)throw Error('Introduz a chave XP_ADMIN_KEY.');const result=await request('/admin/devices');if(!Array.isArray(result))throw Error('Formato de resposta inesperado.');devices=result;render();say('Ligação à API estabelecida. '+devices.length+' dispositivo(s) registado(s).','ok')}
+async function saveDevice(id,readNow){try{api=$('api').value.trim();key=$('key').value;const enabled=$('enabled-'+id).value==='1';const intervalMinutes=Number($('interval-'+id).value);const result=await request('/admin/devices/'+encodeURIComponent(id),{method:'POST',body:JSON.stringify({enabled,intervalMinutes,readNow})});if(!result.ok)throw Error('O servidor não confirmou a alteração. Confirma se o dispositivo ainda está registado.');say(readNow?'Pedido de leitura enviado. O telefone tem de estar ligado à internet e consultar o servidor para responder.':'Configurações guardadas no servidor. O telefone aplicará as alterações quando consultar a API.','ok');await load()}catch(e){say(e.message,'error')}}
+$('connect').onclick=async()=>{ $('connect').disabled=true;try{await load()}catch(e){say(e.message,'error')}finally{$('connect').disabled=false}};
+$('refresh').onclick=async()=>{try{await load()}catch(e){say(e.message,'error')}};
+</script></section></main></body></html>
