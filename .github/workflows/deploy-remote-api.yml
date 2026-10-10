@@ -48,8 +48,10 @@ jobs:
           printf '%s' "$XP_ADMIN_KEY" | wrangler secret put ADMIN_KEY
           printf '%s' "$XP_DEVICE_KEY" | wrangler secret put DEVICE_KEY
       - name: Deploy Worker
-        run: wrangler deploy
+        run: wrangler deploy 2>&1 | tee /tmp/xp-worker-deploy.log
       - name: Report endpoint
         run: |
-          echo "API endpoint: https://xp-battery-api.${CLOUDFLARE_ACCOUNT_ID}.workers.dev"
-          echo "Verify it with: /health"
+          API_URL="$(grep -Eo 'https://xp-battery-api[^[:space:]]+\.workers\.dev' /tmp/xp-worker-deploy.log | head -n 1)"
+          if [ -z "$API_URL" ]; then echo "Check Wrangler output above for the assigned workers.dev URL."; exit 0; fi
+          echo "API endpoint: $API_URL"
+          echo "Health check: $API_URL/health"
