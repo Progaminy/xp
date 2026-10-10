@@ -1,21 +1,17 @@
-# XP — Android + Website Admin
+# XP Battery — Android + XP Admin
 
-Project rebuild in progress. The first feature is battery status only.
+Projeto em desenvolvimento: aplicação Android em Kotlin, painel web e API própria com SQLite.
 
-## Architecture
-- `android-app/`: Android application written in Kotlin. The device owner grants permissions and chooses what the app may share.
-- `web-admin/`: browser-based administration panel.
-- Firebase Authentication + Cloud Firestore: authenticated admin access and per-device settings/status.
-- Firebase Cloud Messaging (FCM): wake-up signal for a requested immediate battery read; periodic updates use Android WorkManager (Android limits periodic work to intervals of at least 15 minutes).
+## Componentes
+- `android-app/`: aplicação Android; mantém dados locais e sincroniza com a API quando configurada.
+- `web-admin/`: painel web publicado pelo GitHub Pages.
+- `backend/self-hosted/`: API Node.js + SQLite para alojamento num servidor Linux/VPS próprio. Não usa Cloudflare nem Firebase.
 
-## Privacy and safety
-- The app sends only battery fields that the device owner has allowed.
-- Admin can enable/disable battery reporting, set an interval, and request a one-time reading.
-- No GPS, SMS, contacts, call logs, arbitrary shell commands, or other features in this first version.
-- Never commit service-account keys, passwords, signing keys, or real device tokens.
-- Android background delivery is best-effort and can be delayed by battery optimization or network conditions.
+## Publicar o servidor
+Consulta [backend/self-hosted/README.md](backend/self-hosted/README.md). É necessário um servidor que permaneça ligado e um endereço HTTPS público para que o APK e o painel funcionem pela Internet. O ficheiro SQLite remoto é persistido num volume Docker.
 
-## Setup status
-This is a clean rebuild branch. Firebase project credentials/configuration have not yet been supplied, so the app and website cannot connect to a live backend until Firebase is configured. See `docs/ARCHITECTURE.md`.
+## Estado atual
+O APK debug já foi compilado no GitHub Actions, mas a API própria ainda precisa de ser instalada num servidor com HTTPS. Até essa publicação, não há um URL de API ativo para ligar o APK e o painel.
 
-The previous Python project is intentionally left untouched on `main` until the replacement is tested.
+## Privacidade e segurança
+A aplicação recolhe apenas os dados previstos pelo projeto (bateria, carregamento, modelo/Android e armazenamento). A recolha remota deve ser ativada pelo administrador e configurada pelo proprietário do dispositivo. Mantém as chaves de administrador e dispositivo fora do repositório.
