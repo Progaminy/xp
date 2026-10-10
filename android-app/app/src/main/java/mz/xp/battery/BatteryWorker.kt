@@ -18,12 +18,17 @@ class BatteryWorker(context: Context, params: WorkerParameters) : CoroutineWorke
             if (remote.configured()) {
                 val id = RemoteApi.deviceId(applicationContext)
                 val settings = remote.poll(id)
-                val schedule = PeriodicWorkRequestBuilder<BatteryWorker>(
-                    settings.intervalMinutes.toLong(), TimeUnit.MINUTES
-                ).build()
-                WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-                    "xp_battery_sync", ExistingPeriodicWorkPolicy.UPDATE, schedule
-                )
+                val schedulePrefs = applicationContext.getSharedPreferences("xp_remote", Context.MODE_PRIVATE)
+                val savedInterval = schedulePrefs.getInt("scheduled_interval", 15)
+                if (savedInterval != settings.intervalMinutes) {
+                    val schedule = PeriodicWorkRequestBuilder<BatteryWorker>(
+                        settings.intervalMinutes.toLong(), TimeUnit.MINUTES
+                    ).build()
+                    WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                        "xp_battery_sync", ExistingPeriodicWorkPolicy.UPDATE, schedule
+                    )
+                    schedulePrefs.edit().putInt("scheduled_interval", settings.intervalMinutes).apply()
+                }
                 if (!settings.registered || settings.enabled || settings.readNow) {
                     val level = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                     if (level !in 0..100) return Result.retry()
