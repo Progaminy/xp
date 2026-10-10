@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XP Admin — Bateria</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa;--green:#34d399}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:760px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}p{color:var(--muted);margin:6px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem}label{display:block;color:var(--muted);margin:14px 0 7px}select,button{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7}@media(min-width:600px){.card{margin:0 0 14px}}
+</style>
+</head>
+<body><main>
+<header><h1>XP Admin</h1><p>Gestão autorizada do dispositivo</p></header>
+<section class="card"><div class="row"><div><strong>Estado do dispositivo</strong><p id="deviceState">Sem ligação ao servidor</p></div><span class="pill">Bateria</span></div><p class="big" id="percent">—%</p><div class="bar"><div class="fill" id="fill"></div></div><p id="charging">Carregamento: —</p><small id="updated">Última atualização: ainda não recebida</small></section>
+<section class="card"><h2>Recolha de bateria</h2><p>Configuração visual inicial. A ligação ao servidor ainda não está configurada.</p>
+<label for="enabled">Recolha automática</label><select id="enabled"><option value="off">OFF — não enviar</option><option value="on">ON — enviar estado da bateria</option></select>
+<label for="interval">Intervalo de envio</label><select id="interval"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">24 horas</option></select>
+<button id="save" disabled>Guardar configurações</button><button class="secondary" id="now" disabled>Solicitar leitura agora</button>
+<p class="notice" id="message">Protótipo visual: ainda não está ligado a um servidor nem controla um telefone.</p></section>
+<section class="card"><h2>Privacidade</h2><p>Esta versão limita-se à bateria. O aplicativo deverá pedir consentimento no próprio aparelho. Não recolhe localização, mensagens, contactos ou outros dados.</p></section>
+</main><script>document.getElementById('enabled').addEventListener('change',()=>{document.getElementById('message').textContent='Opção selecionada localmente. A ligação ao servidor ainda não está configurada.'});document.getElementById('interval').addEventListener('change',()=>{document.getElementById('message').textContent='Intervalo selecionado localmente. A ligação ao servidor ainda não está configurada.'});</script></body></html>
