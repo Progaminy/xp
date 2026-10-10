@@ -20,6 +20,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: rewrite/kotlin-battery-v1
 
       - uses: actions/setup-node@v4
         with:
