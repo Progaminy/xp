@@ -1,3 +1,4 @@
+import os
 import subprocess
 import json
 import time
@@ -5,93 +6,64 @@ import smtplib
 import imaplib
 from email.mime.text import MIMEText
 
-# CONFIGURE AQUI
-EMAIL = "pensadorsemfronteiras0@gmail.com"
-SENHA = "aqjf amlx padb akze"
-DESTINO = "pensadorsemfronteiras0@gmail.com"
-INTERVALO = 5  # segundos para teste (depois mude para 300)
-# ------------------
+EMAIL = os.environ.get("XP_EMAIL_ADDRESS", "")
+SENHA = os.environ.get("XP_EMAIL_APP_PASSWORD", "")
+DESTINO = os.environ.get("XP_EMAIL_DESTINATION", EMAIL)
+INTERVALO = 300
+
+def verificar_config():
+    if not EMAIL or not SENHA or not DESTINO:
+        raise SystemExit("Configura XP_EMAIL_ADDRESS, XP_EMAIL_APP_PASSWORD e XP_EMAIL_DESTINATION.")
 
 def apagar_email_anterior():
-    """Apaga o ultimo email de bateria enviado"""
+    """Apaga o último email de bateria enviado, se existir."""
     try:
-        mail = imaplib.IMAP4_SSL('imap.gmail.com', 993)
+        mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
         mail.login(EMAIL, SENHA)
-        mail.select('"[Gmail]/Sent Mail"')
-
-        # Busca emails com assunto "Alerta de Bateria"
-        status, mensagens = mail.search(None, 'SUBJECT "Alerta de Bateria"')
-
-        if mensagens[0]:
-            ids = mensagens[0].split()
-            # Pega apenas o ultimo email
-            ultimo = ids[-1]
-            mail.store(ultimo, '+FLAGS', '\\Deleted')
-            mail.expunge()
-            print("Email anterior apagado.")
-
+        status, _ = mail.select('"[Gmail]/Sent Mail')
+        if status == "OK":
+            status, mensagens = mail.search(None, 'SUBJECT "Alerta de Bateria"')
+            if status == "OK" and mensagens and mensagens[0]:
+                ids = mensagens[0].split()
+                if ids:
+                    mail.store(ids[-1], "+FLAGS", "\\Deleted")
+                    mail.expunge()
         mail.logout()
     except Exception as e:
-        print(f"Erro ao apagar email: {e}")
+        print(f"Erro ao processar email anterior: {e}")
 
 def enviar_email(assunto, mensagem):
-    """Envia email usando Gmail"""
     try:
         msg = MIMEText(mensagem)
-        msg['Subject'] = assunto
-        msg['From'] = EMAIL
-        msg['To'] = DESTINO
-
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.login(EMAIL, SENHA)
-        server.sendmail(EMAIL, DESTINO, msg.as_string())
-        server.quit()
-        print(f"Email enviado para {DESTINO}")
+        msg["Subject"] = assunto
+        msg["From"] = EMAIL
+        msg["To"] = DESTINO
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+            server.login(EMAIL, SENHA)
+            server.sendmail(EMAIL, [DESTINO], msg.as_string())
     except Exception as e:
         print(f"Erro ao enviar email: {e}")
 
 def verificar_bateria():
-    """Retorna dados da bateria"""
-    resultado = subprocess.run(
-        ['termux-battery-status'],
-        capture_output=True,
-        text=True
-    )
+    resultado = subprocess.run(["termux-battery-status"], capture_output=True, text=True, timeout=10, check=True)
     return json.loads(resultado.stdout)
 
-if __name__ == '__main__':
-    print("Monitor de bateria iniciado...")
-    print(f"Email a cada {INTERVALO} segundos")
-    print(f"Destino: {DESTINO}")
-    print(f"Modo: Apaga anterior antes de enviar novo")
-    print("-" * 40)
-
+if __name__ == "__main__":
+    verificar_config()
+    print("Monitor de bateria por email iniciado.")
     while True:
         try:
             dados = verificar_bateria()
-            porcentagem = dados['percentage']
-            status = dados['status']
-            temperatura = dados['temperature']
-            saude = dados.get('health', 'N/D')
-
             mensagem = (
-                f"Relatorio de Bateria\n"
-                f"====================\n"
-                f"Nivel: {porcentagem}%\n"
-                f"Status: {status}\n"
-                f"Temperatura: {temperatura}°C\n"
-                f"Saude: {saude}"
+                "Relatório de Bateria\n"
+                "====================\n"
+                f"Nivel: {dados.get('percentage', 'N/D')}%\n"
+                f"Status: {dados.get('status', 'N/D')}\n"
+                f"Temperatura: {dados.get('temperature', 'N/D')}°C\n"
+                f"Saude: {dados.get('health', 'N/D')}"
             )
-
-            print(mensagem.replace('\n', ' | '))
-
-            # 1. Apaga o email anterior
             apagar_email_anterior()
-
-            # 2. Envia o novo email
             enviar_email("Alerta de Bateria", mensagem)
-
         except Exception as e:
-            print(f"Erro: {e}")
-
+            print(f"Erro no monitor de bateria: {e}")
         time.sleep(INTERVALO)
