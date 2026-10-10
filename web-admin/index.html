@@ -4,55 +4,26 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>XP Admin — Bateria</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa;--green:#34d399}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:760px;margin:auto;padding:24px 16px}header{margin-bottom:22px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.15rem;margin:0}p{color:var(--muted);margin:6px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border-radius:999px;padding:5px 10px;background:#1d344a;color:#b7d8ff;font-size:.85rem;white-space:nowrap}.first-access{display:inline-block;margin-top:10px;border:1px solid #36577b;border-radius:999px;padding:5px 10px;color:#bfdbfe;font-size:.82rem}.section-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:0;border:0;background:transparent;color:var(--text);text-align:left;cursor:pointer}.section-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:5px;border-radius:5px}.chevron{font-size:1.3rem;transition:transform .18s ease;color:var(--accent)}details[open] .chevron{transform:rotate(180deg)}.section-content{padding-top:16px}.big{font-size:2.6rem;font-weight:750;letter-spacing:-.04em}.bar{height:10px;background:#26364d;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--green)}label{display:block;color:var(--muted);margin:14px 0 7px}select,button.action{font:inherit;border-radius:10px;padding:12px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button.action{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;border:0;margin-top:12px}button.secondary{background:#26364d;color:var(--text)}button:disabled{opacity:.5;cursor:not-allowed}small{color:var(--muted)}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#10223a;border-radius:8px;color:#c9dcf7;margin-top:14px}.intro{line-height:1.5}@media(min-width:600px){.card{margin:0 0 14px}}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121c2e;--line:#27364d;--text:#eef4ff;--muted:#9baec8;--accent:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}main{max-width:720px;margin:auto;padding:24px 16px}h1{margin:0 0 6px;font-size:1.8rem}p{color:var(--muted);line-height:1.5}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin:16px 0}label{display:block;color:var(--muted);margin:14px 0 7px}input,button{font:inherit;border-radius:10px;padding:13px;border:1px solid var(--line);width:100%;background:#0d1727;color:var(--text)}button{cursor:pointer;background:var(--accent);color:#071323;font-weight:700;margin-top:12px;border:0}.notice{border-left:3px solid var(--accent);padding:12px;background:#10223a;border-radius:8px}.step{display:flex;gap:12px;margin:16px 0}.num{background:#26364d;border-radius:50%;min-width:32px;height:32px;display:grid;place-items:center;font-weight:700}
 </style>
 </head>
 <body><main>
-<header><h1>XP Admin</h1><p>Gestão autorizada do dispositivo</p><span class="first-access">Primeiro acesso · Configuração inicial</span></header>
-
+<header><h1>XP Admin</h1><p>Gestão local da bateria do dispositivo autorizado</p></header>
 <section class="card">
-  <details id="batteryDetails" open>
-    <summary class="section-toggle">
-      <span><strong>Bateria do dispositivo</strong><p id="deviceState">Sem ligação ao servidor</p></span>
-      <span class="row"><span class="pill">Bateria</span><span class="chevron" aria-hidden="true">⌄</span></span>
-    </summary>
-    <div class="section-content">
-      <p class="big" id="percent">—%</p>
-      <div class="bar" role="progressbar" aria-label="Nível da bateria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
-      <p id="charging">Carregamento: —</p>
-      <small id="updated">Última atualização: ainda não recebida</small>
-    </div>
-  </details>
-</section>
-
-<section class="card">
-  <details id="collectionDetails" open>
-    <summary class="section-toggle"><span><strong>Recolha de bateria</strong><p>Definir como e quando consultar a bateria</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-    <div class="section-content">
-      <p>Esta é a configuração inicial do painel. As alterações ainda não são enviadas para um telefone porque o servidor não está ligado.</p>
-      <label for="enabled">Recolha automática</label><select id="enabled"><option value="off">OFF — não enviar</option><option value="on">ON — enviar estado da bateria</option></select>
-      <label for="interval">Intervalo de envio</label><select id="interval"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">1 hora</option><option value="180">3 horas</option><option value="360">6 horas</option><option value="720">12 horas</option><option value="1440">24 horas</option></select>
-      <button class="action" id="save" disabled>Guardar configurações</button>
-      <button class="action secondary" id="now" disabled>Solicitar leitura agora</button>
-      <p class="notice" id="message">Modo de primeiro acesso: protótipo visual. Ainda não controla o telefone nem recebe dados reais.</p>
-    </div>
-  </details>
-</section>
-
-<section class="card">
-  <details id="privacyDetails">
-    <summary class="section-toggle"><span><strong>Privacidade</strong><p>O que esta versão consulta</p></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-    <div class="section-content"><p>O objetivo é trabalhar apenas com o estado da bateria, mediante autorização no próprio aparelho. Não recolhe localização, mensagens, contactos ou outros dados.</p></div>
-  </details>
+<h2>Abrir o painel do telefone</h2>
+<p>Os dados ficam numa base de dados SQLite dentro do telefone Android. Esta página pública não consegue ler essa base de dados diretamente. Para ver os dados reais, abre o painel servido pelo próprio XP Battery na rede local.</p>
+<div class="step"><span class="num">1</span><p>Abre o APK <strong>XP Battery</strong> no telefone que será monitorizado e mantém a aplicação aberta.</p></div>
+<div class="step"><span class="num">2</span><p>Copia o endereço local mostrado no ecrã do APK. Os dois telefones devem estar ligados à mesma rede Wi-Fi.</p></div>
+<div class="step"><span class="num">3</span><p>Cola o endereço abaixo e abre o painel local. No painel, introduz o código de acesso mostrado no APK.</p></div>
+<label for="localUrl">Endereço local apresentado pelo XP Battery</label>
+<input id="localUrl" type="url" inputmode="url" placeholder="http://192.168.1.25:8765/">
+<button id="open">Abrir painel local</button>
+<p class="notice" id="message">Usa apenas uma rede privada de confiança. A ligação HTTP local não é cifrada; nunca exponhas a porta 8765 à Internet.</p>
 </section>
 </main>
 <script>
-const message = document.getElementById('message');
-document.getElementById('enabled').addEventListener('change',()=>{message.textContent='Opção selecionada apenas neste navegador. O servidor ainda não está configurado.'});
-document.getElementById('interval').addEventListener('change',()=>{message.textContent='Intervalo selecionado apenas neste navegador. O servidor ainda não está configurado.'});
-document.querySelectorAll('details').forEach(details=>details.addEventListener('toggle',()=>{
-  const summary=details.querySelector('summary');
-  if(summary) summary.setAttribute('aria-expanded',String(details.open));
-}));
-</script></body></html>
+const field=document.getElementById('localUrl');field.value=sessionStorage.getItem('xpAdminLocalUrl')||'';
+document.getElementById('open').addEventListener('click',()=>{let value=field.value.trim();try{const url=new URL(value);if(url.protocol!=='http:'||!url.port||url.port!=='8765'){throw new Error('Formato')}sessionStorage.setItem('xpAdminLocalUrl',url.href);location.href=url.href;}catch(e){document.getElementById('message').textContent='Introduz o endereço completo apresentado pelo APK, incluindo http:// e a porta 8765.';}});
+</script>
+</body></html>
