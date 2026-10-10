@@ -10,7 +10,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
 
-data class RemoteSettings(val enabled: Boolean, val intervalMinutes: Int, val readNow: Boolean)
+data class RemoteSettings(val enabled: Boolean, val intervalMinutes: Int, val readNow: Boolean, val registered: Boolean = true)
 
 class RemoteApi(private val context: Context) {
     private val prefs = context.getSharedPreferences("xp_remote", Context.MODE_PRIVATE)
@@ -24,7 +24,7 @@ class RemoteApi(private val context: Context) {
         val response = call("/device/poll", JSONObject().put("deviceId", deviceId))
         return RemoteSettings(response.optBoolean("collectionEnabled", false),
             response.optInt("intervalMinutes", 15).coerceIn(15, 1440),
-            response.optBoolean("readNowRequested", false))
+            response.optBoolean("readNowRequested", false), response.optBoolean("registered", true))
     }
     fun upload(deviceId: String): RemoteSettings {
         val manager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
