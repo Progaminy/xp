@@ -1,0 +1,16 @@
+services:
+  xp-battery-api:
+    build: .
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      XP_DB_PATH: /data/xp-battery.sqlite
+      XP_ADMIN_KEY: ${XP_ADMIN_KEY:?Set XP_ADMIN_KEY in .env}
+      XP_DEVICE_KEY: ${XP_DEVICE_KEY:?Set XP_DEVICE_KEY in .env}
+      XP_ADMIN_ORIGIN: ${XP_ADMIN_ORIGIN:-https://progaminy.github.io}
+    volumes:
+      - xp_battery_data:/data
+    ports:
+      - "127.0.0.1:3000:3000"
+volumes:
+  xp_battery_data:
