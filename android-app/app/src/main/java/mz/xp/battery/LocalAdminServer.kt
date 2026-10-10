@@ -18,7 +18,8 @@ class LocalAdminServer(
     private val context: Context,
     private val db: BatteryDatabase,
     private val accessToken: String,
-    private val onReadNow: () -> Unit
+    private val onReadNow: () -> Unit,
+    private val onConfigChanged: (Boolean, Int) -> Unit
 ) {
     companion object { const val PORT = 8765 }
     private val running = AtomicBoolean(false)
@@ -115,7 +116,9 @@ class LocalAdminServer(
                             if (interval !in listOf(15, 30, 60, 180, 360, 720, 1440)) {
                                 send(s, 400, "application/json; charset=utf-8", "{\"error\":\"Intervalo inválido\"}")
                             } else {
-                                db.updateSettings(obj.optBoolean("enabled", false), interval)
+                                val enabled = obj.optBoolean("enabled", false)
+                                db.updateSettings(enabled, interval)
+                                onConfigChanged(enabled, interval)
                                 send(s, 200, "application/json; charset=utf-8", "{\"ok\":true}")
                             }
                         } catch (_: Exception) {
