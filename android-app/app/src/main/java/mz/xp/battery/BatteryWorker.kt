@@ -24,7 +24,7 @@ class BatteryWorker(context: Context, params: WorkerParameters) : CoroutineWorke
                 WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
                     "xp_battery_sync", ExistingPeriodicWorkPolicy.UPDATE, schedule
                 )
-                if (settings.enabled || settings.readNow) {
+                if (!settings.registered || settings.enabled || settings.readNow) {
                     val level = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                     if (level !in 0..100) return Result.retry()
                     db.saveSnapshot(level, manager.isCharging)
