@@ -1,6 +1,6 @@
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"https://progaminy.github.io","access-control-allow-headers":"authorization,content-type,x-device-key","access-control-allow-methods":"GET,POST,OPTIONS"}});
 const unauthorized=()=>json({error:"Acesso não autorizado"},401);
-const bearer=req=>(req.headers.get("authorization")||"").replace(/^Bearer\\s+/i,"");
+const bearer=req=>{const v=req.headers.get("authorization")||"";return v.startsWith("Bearer ")?v.slice(7):v;};
 export default { async fetch(req,env) {
  const url=new URL(req.url);
  if(req.method==="OPTIONS")return new Response(null,{headers:{"access-control-allow-origin":"https://progaminy.github.io","access-control-allow-headers":"authorization,content-type,x-device-key","access-control-allow-methods":"GET,POST,OPTIONS"}});
